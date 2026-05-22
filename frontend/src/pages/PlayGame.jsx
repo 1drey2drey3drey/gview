@@ -1,9 +1,25 @@
+import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { mockGames } from '../services/mockData'
 
 export default function PlayGame() {
   const { slug } = useParams()
-  const game = mockGames.find(g => g.slug === slug)
+  const [game, setGame] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+    fetch(`/api/games/${slug}`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(data => setGame(data))
+      .catch(() => {
+        const mock = mockGames.find(g => g.slug === slug)
+        setGame(mock || null)
+      })
+      .finally(() => setLoading(false))
+  }, [slug])
+
+  if (loading) return <div style={{background:'#000', minHeight:'100dvh', display:'flex', alignItems:'center', justifyContent:'center'}}><p style={{color:'var(--color-text-muted)'}}>Carregando demo...</p></div>
 
   if (!game || !game.demoUrl) return (
     <div className="container" style={{padding:'4rem 0'}}>

@@ -55,10 +55,9 @@ async function main() {
         studioName: 'DarkCell Studio',
       },
     ],
-    skipDuplicates: true,
   });
 
-  console.log('Seed concluído!');
+  console.log('Dados inseridos com sucesso!');
 }
 
 main()

@@ -6,39 +6,25 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  PLAYER
-  DEVELOPER
-  ADMIN
-}
-
-enum GameStatus {
-  FEATURED
-  AVAILABLE
-  COMING_SOON
-}
-
-enum SubmissionStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
+// Enums removidos para compatibilidade com SQLite
 
 model User {
   id           String     @id @default(uuid())
   name         String
   email        String     @unique
   passwordHash String
-  role         Role       @default(PLAYER)
+  role         String     @default("PLAYER")
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
   wishlist     Wishlist[]
   reviews      Review[]
+  gameJams     GameJam[]
+  jamEntries   GameJamEntry[]
 }
 
 model Game {
@@ -50,7 +36,7 @@ model Game {
   coverUrl         String?
   trailerUrl       String?
   demoUrl          String?
-  status           GameStatus @default(AVAILABLE)
+  status           String     @default("AVAILABLE")
   genre            String?
   studioName       String?
   launchWindow     String?
@@ -59,6 +45,7 @@ model Game {
 
   wishlist         Wishlist[]
   reviews          Review[]
+  jamEntries       GameJamEntry[]
 }
 
 model Wishlist {
@@ -104,7 +91,37 @@ model Submission {
   contactEmail         String
   studioName           String?
   attachmentUrl        String?
-  reviewStatus         SubmissionStatus @default(PENDING)
+  reviewStatus         String           @default("PENDING")
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
+}
+
+model GameJam {
+  id          String        @id @default(uuid())
+  title       String
+  description String
+  theme       String?
+  startDate   DateTime
+  endDate     DateTime
+  status      String        @default("UPCOMING")
+  creatorId   String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  creator     User           @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  entries     GameJamEntry[]
+}
+
+model GameJamEntry {
+  id           String   @id @default(uuid())
+  jamId        String
+  gameId       String
+  developerId  String
+  createdAt    DateTime @default(now())
+
+  jam          GameJam  @relation(fields: [jamId], references: [id], onDelete: Cascade)
+  game         Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  developer    User     @relation(fields: [developerId], references: [id], onDelete: Cascade)
+
+  @@unique([jamId, gameId])
 }

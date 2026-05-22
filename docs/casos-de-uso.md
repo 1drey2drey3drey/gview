@@ -104,3 +104,31 @@
 - **Fluxo principal:** admin altera dados; sistema salva edição.
 - **Fluxo alternativo:** dados inválidos.
 - **Pós-condição:** jogo atualizado no catálogo.
+
+## UC16 — Criar uma Game Jam
+- **Ator:** administrador / desenvolvedor.
+- **Pré-condição:** usuário autenticado com permissão.
+- **Fluxo principal:** usuário acessa painel, preenche formulário de Game Jam e envia.
+- **Fluxo alternativo:** datas conflitantes ou dados inválidos.
+- **Pós-condição:** Game Jam registrada no sistema.
+
+## UC17 — Listar Game Jams
+- **Ator:** visitante.
+- **Pré-condição:** catálogo de Game Jams disponível.
+- **Fluxo principal:** visitante acessa página de Jams e visualiza as ativas e futuras.
+- **Fluxo alternativo:** Nenhuma Jam ativa.
+- **Pós-condição:** visitante vê as Jams.
+
+## UC18 — Participar de uma Game Jam
+- **Ator:** desenvolvedor.
+- **Pré-condição:** usuário logado, Game Jam ativa.
+- **Fluxo principal:** desenvolvedor vincula seu jogo à Jam.
+- **Fluxo alternativo:** jogo já vinculado ou Jam finalizada.
+- **Pós-condição:** participação registrada.
+
+## UC19 — Importar Jogo da API RAWG
+- **Ator:** administrador.
+- **Pré-condição:** permissão administrativa.
+- **Fluxo principal:** admin informa ID RAWG, sistema busca dados externos e salva como Jogo local.
+- **Fluxo alternativo:** ID não encontrado ou erro de API.
+- **Pós-condição:** jogo novo persistido no banco de dados.

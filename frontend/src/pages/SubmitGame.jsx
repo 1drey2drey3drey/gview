@@ -9,18 +9,27 @@ export default function SubmitGame() {
   })
   const [sent, setSent] = useState(false)
 
+  const [error, setError] = useState('')
+
   const handle = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
 
   const submit = async e => {
     e.preventDefault()
+    setError('')
     try {
-      await fetch('/api/submissions', {
+      const res = await fetch('/api/submissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       })
-    } catch (_) {}
-    setSent(true)
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Erro ao enviar a submissão')
+      }
+      setSent(true)
+    } catch (err) {
+      setError(err.message || 'Erro de conexão.')
+    }
   }
 
   if (sent) return (
@@ -36,6 +45,7 @@ export default function SubmitGame() {
         <h1>envie seu jogo</h1>
         <p>Está desenvolvendo uma demo incrível? Adoraríamos conhecer! Preencha as informações abaixo e nossa equipe entrará em contato.</p>
       </div>
+      {error && <div className="auth-error" style={{marginBottom: '2rem'}}>{error}</div>}
       <form className="submit-form" onSubmit={submit}>
         <fieldset>
           <legend>sobre o jogo</legend>

@@ -1,8 +1,16 @@
 .admin-page {
-  padding: 3rem 0;
+  padding: var(--space-12) 0;
 }
 
+/* ─── Header ─── */
 .admin-header {
+  margin-bottom: 2rem;
+}
+
+.admin-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 2rem;
 }
 
@@ -14,18 +22,66 @@
 
 .admin-header p {
   color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
+.admin-role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 1rem;
+  background: rgba(244, 98, 42, 0.1);
+  border: 1px solid rgba(244, 98, 42, 0.25);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+/* ─── Tabs ─── */
+.admin-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid transparent;
+  transition: color var(--transition), border-color var(--transition);
+  cursor: pointer;
+}
+
+.admin-tab:hover { color: var(--color-text); }
+
+.admin-tab.active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.tab-count {
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+}
+
+/* ─── Messages ─── */
 .admin-msg {
   text-align: center;
   padding: 3rem 0;
   color: var(--color-text-muted);
 }
+.admin-error { color: #e74c3c; }
 
-.admin-error {
-  color: #c0392b;
-}
-
+/* ─── Submissions List ─── */
 .submissions-list {
   display: flex;
   flex-direction: column;
@@ -35,11 +91,16 @@
 .submission-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  transition: border-color var(--transition);
+}
+
+.submission-card:hover {
+  border-color: rgba(255,255,255,0.12);
 }
 
 .submission-top {
@@ -56,13 +117,13 @@
 }
 
 .submission-meta {
-  font-size: 0.85rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   margin: 0;
 }
 
 .submission-desc {
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   line-height: 1.6;
   margin: 0;
@@ -73,17 +134,12 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1.5rem;
-  font-size: 0.82rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
 
 .submission-details a {
   color: var(--color-accent);
-  text-decoration: none;
-}
-
-.submission-details a:hover {
-  text-decoration: underline;
 }
 
 .submission-actions {
@@ -92,34 +148,194 @@
   margin-top: 0.25rem;
 }
 
+/* ─── Action Buttons ─── */
 .btn-approve {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
+  background: rgba(46, 204, 113, 0.1);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.25);
   padding: 0.4rem 1rem;
-  border-radius: 0.4rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  transition: opacity 0.15s;
+  transition: all var(--transition);
 }
-
-.btn-approve:hover { opacity: 0.8; }
+.btn-approve:hover { background: rgba(46, 204, 113, 0.2); }
 
 .btn-reject {
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.25);
   padding: 0.4rem 1rem;
-  border-radius: 0.4rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  transition: opacity 0.15s;
+  transition: all var(--transition);
+}
+.btn-reject:hover { background: rgba(231, 76, 60, 0.2); }
+
+/* ─── Status Badges (dark-theme friendly) ─── */
+.badge-pending  { background: rgba(241, 196, 15, 0.12); color: #f1c40f; }
+.badge-approved { background: rgba(46, 204, 113, 0.12); color: #2ecc71; }
+.badge-rejected { background: rgba(231, 76, 60, 0.12); color: #e74c3c; }
+
+/* ─── RAWG Import ─── */
+.admin-rawg-import {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.btn-reject:hover { opacity: 0.8; }
+.admin-rawg-import h3 {
+  font-size: var(--text-base);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
 
-.badge-pending  { background: #fff3cd; color: #856404; }
-.badge-approved { background: #d4edda; color: #155724; }
-.badge-rejected { background: #f8d7da; color: #721c24; }
+.admin-rawg-hint {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+}
+
+.rawg-input-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.rawg-input {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+}
+
+.rawg-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.rawg-msg {
+  margin-top: 0.75rem;
+  font-size: var(--text-sm);
+  color: var(--color-accent-2);
+}
+
+/* ─── Games List ─── */
+.admin-subtitle {
+  font-size: var(--text-base);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.admin-games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-game-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition);
+}
+
+.admin-game-row:hover {
+  border-color: rgba(255,255,255,0.12);
+}
+
+.admin-game-thumb {
+  width: 48px;
+  height: 64px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.admin-game-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.admin-game-info strong {
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-game-info span {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* ─── Jam Form ─── */
+.admin-jams-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.admin-jam-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.jam-form {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.jam-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.jam-form .auth-field input,
+.jam-form .auth-field textarea {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.85rem;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+}
+
+.jam-form .auth-field input:focus,
+.jam-form .auth-field textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.jam-form .auth-field label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 0.3rem;
+  display: block;
+}

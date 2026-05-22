@@ -1,6 +1,6 @@
 # Modelagem do Banco de Dados — Gview
 
-**Banco:** PostgreSQL  
+**Banco:** SQLite (convertido para facilitar avaliação local sem necessidade de setups)  
 **ORM:** Prisma  
 **Arquivo de referência:** `backend/prisma/schema.prisma`
 
@@ -15,7 +15,7 @@
 | name | String | obrigatório |
 | email | String | único, obrigatório |
 | passwordHash | String | obrigatório |
-| role | Enum (PLAYER, DEVELOPER, ADMIN) | default PLAYER |
+| role | String | default "PLAYER" |
 | createdAt | DateTime | default now() |
 | updatedAt | DateTime | atualizado automaticamente |
 
@@ -30,7 +30,7 @@
 | coverUrl | String | opcional |
 | trailerUrl | String | opcional |
 | demoUrl | String | opcional |
-| status | Enum (FEATURED, AVAILABLE, COMING_SOON) | default AVAILABLE |
+| status | String | default "AVAILABLE" |
 | genre | String | opcional |
 | studioName | String | opcional |
 | launchWindow | String | opcional |
@@ -55,7 +55,7 @@
 | contactEmail | String | obrigatório |
 | studioName | String | opcional |
 | attachmentUrl | String | opcional |
-| reviewStatus | Enum (PENDING, APPROVED, REJECTED) | default PENDING |
+| reviewStatus | String | default "PENDING" |
 | createdAt | DateTime | default now() |
 | updatedAt | DateTime | atualizado automaticamente |
 
@@ -89,17 +89,8 @@
 ```
 User 1 ──< Wishlist >── 1 Game
 User 1 ──< Review   >── 1 Game
+User 1 ──< GameJam  >── N Entradas (Futuro)
 ```
 
 - `Wishlist` e `Review` são entidades de junção com `onDelete: Cascade` em ambas as FKs.
-- `Submission` não possui FK para `User` nesta sprint (submissão anônima); a vinculação com conta será adicionada na Sprint 2.
-
----
-
-## Enums
-
-| Enum | Valores |
-|---|---|
-| Role | PLAYER, DEVELOPER, ADMIN |
-| GameStatus | FEATURED, AVAILABLE, COMING_SOON |
-| SubmissionStatus | PENDING, APPROVED, REJECTED |
+- *Nota sobre Enums:* Como o banco foi migrado para SQLite para assegurar que rodará na máquina do avaliador acadêmico, os campos de `status` e `role` foram adaptados para `String` com validações garantidas pela lógica da aplicação.

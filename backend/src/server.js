@@ -8,6 +8,7 @@ const authRouter = require('./routes/auth.routes');
 const wishlistRouter = require('./routes/wishlist.routes');
 const reviewsRouter = require('./routes/reviews.routes');
 const rawgRouter = require('./routes/rawg.routes');
+const gameJamsRouter = require('./routes/gameJams.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,6 +23,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/wishlist', wishlistRouter);
 app.use('/api/reviews', reviewsRouter);
 app.use('/api/rawg', rawgRouter);
+app.use('/api/gamejams', gameJamsRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

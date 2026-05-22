@@ -1,0 +1,204 @@
+/* ─── Game Jams Page ─── */
+.jams-page {
+  padding: var(--space-12) 0;
+}
+
+/* ─── Header ─── */
+.jams-header {
+  margin-bottom: 3rem;
+}
+
+.jams-eyebrow {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.jams-title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.75rem;
+}
+
+.jams-subtitle {
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+  max-width: 52ch;
+}
+
+/* ─── Empty State ─── */
+.jams-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+}
+
+.jams-empty-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.jams-empty h3 {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.jams-empty p {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ─── Grid ─── */
+.jams-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ─── Card ─── */
+.jam-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 0;
+  overflow: hidden;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.jam-card:hover {
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+.jam-card-header {
+  padding: 1.5rem 1.75rem;
+}
+
+.jam-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.jam-card-title {
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.jam-card-desc {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+/* ─── Status ─── */
+.jam-status {
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.jam-status-active {
+  background: rgba(46, 204, 113, 0.12);
+  color: #2ecc71;
+}
+
+.jam-status-upcoming {
+  background: rgba(52, 152, 219, 0.12);
+  color: #3498db;
+}
+
+.jam-status-finished {
+  background: rgba(149, 165, 166, 0.12);
+  color: #95a5a6;
+}
+
+/* ─── Theme ─── */
+.jam-theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-md);
+}
+
+.jam-theme-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.jam-theme-value {
+  font-size: var(--text-sm);
+  color: var(--color-accent-2);
+  font-weight: 600;
+}
+
+/* ─── Footer ─── */
+.jam-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.75rem;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+}
+
+.jam-dates {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.jam-date {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.jam-date-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.jam-date-value {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.jam-date-divider {
+  width: 24px;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.jam-participate-btn {
+  padding: 0.6rem 1.5rem;
+}
+
+.jam-login-hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}

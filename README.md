@@ -9,7 +9,7 @@ Inspirada no Spawnd e no itch.io — sem instalação, só jogar.
 |--------|-----------|
 | Front-end | React + Vite (JavaScript) |
 | Back-end | Node.js + Express |
-| Banco | PostgreSQL + Prisma ORM |
+| Banco | SQLite + Prisma ORM |
 | API externa | RAWG Video Games Database API |
 | Testes | Vitest + Supertest + Playwright |
 
@@ -17,7 +17,7 @@ Inspirada no Spawnd e no itch.io — sem instalação, só jogar.
 
 ### Pré-requisitos
 - Node.js 18+
-- PostgreSQL rodando localmente
+- Node.js 18+
 
 ### Backend
 
@@ -25,8 +25,8 @@ Inspirada no Spawnd e no itch.io — sem instalação, só jogar.
 cd backend
 cp .env.example .env        # preencha DATABASE_URL, JWT_SECRET e RAWG_API_KEY
 npm install
-npx prisma migrate dev      # cria as tabelas
-npm run db:seed             # popula com dados de exemplo
+npx prisma db push          # cria o banco sqlite (dev.db) localmente
+node prisma/seed.js         # popula com dados de exemplo
 npm run dev                 # http://localhost:3001
 ```
 
@@ -60,20 +60,22 @@ npm run dev                 # http://localhost:5173
 
 | Tela | Rota | Operações |
 |------|------|-----------|
-| Home | / | Leitura de jogos (via API com fallback para mock) |
-| Detalhe do jogo | /game/:slug | Leitura + wishlist |
+| Home | / | Leitura de jogos |
+| Detalhe do jogo | /game/:slug | Leitura, Adicionar à Wishlist, Criar/Editar/Excluir Avaliações (CRUD 1) |
 | Jogar demo | /play/:slug | Execução via iframe |
 | Enviar jogo | /submit | Criação de submissão |
-| Painel admin | /admin | Leitura e atualização de submissões |
+| Perfil de Usuário | /profile | Leitura de Conta, Atualização de Nome e Exclusão de Conta (CRUD 2) |
+| Painel admin | /admin | Leitura, atualização e exclusão de submissões e jogos |
 
 ## Documentação
 
 | Documento | Arquivo |
 |---|---|
-| Casos de uso (UC01–UC15) | [`docs/casos-de-uso.md`](docs/casos-de-uso.md) |
+| Casos de uso (UC01–UC19) | [`docs/casos-de-uso.md`](docs/casos-de-uso.md) |
 | Modelagem do banco de dados | [`docs/modelagem.md`](docs/modelagem.md) |
 | Integração com API externa (RAWG) | [`docs/api-externa.md`](docs/api-externa.md) |
 | Escopo e planejamento da Sprint 1 | [`SPRINT1.md`](SPRINT1.md) |
+| Entregáveis da Sprint 2 | [`SPRINT2.md`](SPRINT2.md) |
 
 ## Repositório
 
