@@ -2,98 +2,162 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { apiFetch } from '../services/api.js'
-import { mockGames } from '../services/mockData'
 import './GameDetail.css'
 
 export default function GameDetail() {
   const { slug } = useParams()
   const { user } = useAuth()
-  const [game, setGame] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [inWishlist, setInWishlist] = useState(false)
-  const [reviews, setReviews] = useState([])
-  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' })
-  const [reviewMsg, setReviewMsg] = useState('')
+  const [game, setGame]               = useState(null)
+  const [loading, setLoading]         = useState(true)
+  const [inWishlist, setInWishlist]   = useState(false)
+  const [wishlistId, setWishlistId]   = useState(null)
+  const [reviews, setReviews]         = useState([])
+  const [reviewForm, setReviewForm]   = useState({ rating: 5, comment: '' })
+  const [reviewMsg, setReviewMsg]     = useState('')
+  const [editingReview, setEditingReview] = useState(null)
+  const [editForm, setEditForm]       = useState({ rating: 5, comment: '' })
 
+  // Carrega o jogo: se for rawgId, importa para o banco e usa o game local
   useEffect(() => {
     window.scrollTo(0, 0)
     setLoading(true)
-    fetch(`/api/games/${slug}`)
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(data => setGame(data))
-      .catch(() => {
-        const mock = mockGames.find(g => g.slug === slug)
-        setGame(mock || null)
-      })
-      .finally(() => setLoading(false))
+    setGame(null)
+    setReviews([])
+    setInWishlist(false)
+
+    const isRawgId = /^\d+$/.test(slug)
+
+    const fetchGame = async () => {
+      try {
+        if (isRawgId) {
+          // POST /api/rawg/import/:rawgId — importa ou retorna o jogo já importado
+          const importRes = await apiFetch(`/api/rawg/import/${slug}`, { method: 'POST' })
+          if (importRes.ok) {
+            const imported = await importRes.json()
+            setGame(imported.game || imported)
+          } else {
+            // Fallback: busca dados diretamente da RAWG (sem persistência)
+            const rawRes = await fetch(`/api/rawg/game/${slug}`)
+            if (rawRes.ok) {
+              const rawData = await rawRes.json()
+              setGame({
+                id:               String(rawData.rawgId),
+                slug,
+                title:            rawData.name,
+                coverUrl:         rawData.coverUrl,
+                genre:            rawData.genres ? rawData.genres.join(', ') : '',
+                studioName:       rawData.rating ? `★ ${rawData.rating.toFixed(1)}` : 'RAWG',
+                demoUrl:          null,
+                status:           'AVAILABLE',
+                shortDescription: rawData.description ? rawData.description.slice(0, 120) + '...' : '',
+                fullDescription:  rawData.description || '',
+                launchWindow:     rawData.released,
+              })
+            } else {
+              setGame(null)
+            }
+          }
+        } else {
+          const res = await fetch(`/api/games/${slug}`)
+          if (res.ok) {
+            setGame(await res.json())
+          } else {
+            setGame(null)
+          }
+        }
+      } catch (e) {
+        console.error('Erro ao carregar jogo:', e)
+        setGame(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchGame()
   }, [slug])
 
-  // Check wishlist status
+  // Verifica status da wishlist
   useEffect(() => {
-    if (!user || !game) return
+    if (!user || !game?.id) return
     apiFetch(`/api/wishlist/${user.id}`)
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : Promise.reject())
       .then(data => {
         const list = Array.isArray(data) ? data : (data.data || [])
-        setInWishlist(list.some(w => w.gameId === game.id))
+        const entry = list.find(w => w.gameId === game.id)
+        setInWishlist(!!entry)
+        setWishlistId(entry?.id || null)
       })
       .catch(() => {})
   }, [user, game])
 
-  // Load reviews
+  // Carrega reviews do jogo
   useEffect(() => {
-    if (!game) return
+    if (!game?.id) return
+    // Se o id é numérico (fallback sem persistência), não busca reviews
+    if (/^\d+$/.test(String(game.id))) return
     fetch(`/api/reviews/game/${game.id}`)
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : Promise.reject())
       .then(data => setReviews(Array.isArray(data) ? data : (data.data || [])))
       .catch(() => setReviews([]))
   }, [game])
 
   const toggleWishlist = async () => {
-    if (!user) return alert('Faça login para adicionar à lista de desejos!')
+    if (!user) return alert('Faça login para adicionar à lista de favoritos!')
+    if (!game?.id) return
+
+    // Se o game.id é rawgId numérico, o backend vai auto-importar
     if (inWishlist) {
-      await apiFetch(`/api/wishlist/${game.id}`, { method: 'DELETE' })
-      setInWishlist(false)
+      // Remove pelo gameId (que é o UUID do banco após import)
+      const res = await apiFetch(`/api/wishlist/${game.id}`, { method: 'DELETE' })
+      if (res.ok) setInWishlist(false)
     } else {
-      await apiFetch('/api/wishlist', {
+      const res = await apiFetch('/api/wishlist', {
         method: 'POST',
-        body: JSON.stringify({ gameId: game.id })
+        body: JSON.stringify({ gameId: game.id }),
       })
-      setInWishlist(true)
+      if (res.ok) {
+        const data = await res.json()
+        // Atualiza o game.id com o UUID retornado caso tenha sido auto-importado
+        if (data.gameId && data.gameId !== game.id) {
+          setGame(prev => ({ ...prev, id: data.gameId }))
+        }
+        setInWishlist(true)
+      } else {
+        const err = await res.json()
+        alert(err.error || 'Erro ao adicionar à lista')
+      }
     }
   }
-
-  const [editingReview, setEditingReview] = useState(null)
-  const [editForm, setEditForm] = useState({ rating: 5, comment: '' })
 
   const submitReview = async (e) => {
     e.preventDefault()
     if (!user) return alert('Faça login para avaliar!')
+    if (!game?.id) return
     setReviewMsg('')
+
     try {
       if (editingReview) {
-        // Update
         const res = await apiFetch(`/api/reviews/${editingReview}`, {
           method: 'PUT',
-          body: JSON.stringify(editForm)
+          body: JSON.stringify(editForm),
         })
         if (res.ok) {
           const data = await res.json()
-          setReviews(prev => prev.map(r => r.id === editingReview ? { ...data, user: r.user } : r))
+          setReviews(prev => prev.map(r => r.id === editingReview ? { ...r, ...data } : r))
           setEditingReview(null)
           setReviewMsg('Avaliação atualizada!')
         } else {
-          setReviewMsg('Erro ao atualizar.')
+          const err = await res.json()
+          setReviewMsg(err.error || 'Erro ao atualizar.')
         }
       } else {
-        // Create
         const res = await apiFetch('/api/reviews', {
           method: 'POST',
-          body: JSON.stringify({ gameId: game.id, rating: reviewForm.rating, comment: reviewForm.comment })
+          body: JSON.stringify({ gameId: game.id, rating: reviewForm.rating, comment: reviewForm.comment }),
         })
         if (res.ok) {
           const data = await res.json()
-          setReviews(prev => [{ ...data, user: { name: user.name } }, ...prev])
+          setReviews(prev => [data, ...prev])
           setReviewForm({ rating: 5, comment: '' })
           setReviewMsg('Avaliação enviada!')
         } else {
@@ -101,7 +165,9 @@ export default function GameDetail() {
           setReviewMsg(err.error || 'Erro ao enviar.')
         }
       }
-    } catch { setReviewMsg('Erro de conexão.') }
+    } catch {
+      setReviewMsg('Erro de conexão.')
+    }
   }
 
   const handleDeleteReview = async (id) => {
@@ -112,19 +178,23 @@ export default function GameDetail() {
         setReviews(prev => prev.filter(r => r.id !== id))
         if (editingReview === id) setEditingReview(null)
       }
-    } catch { alert('Erro ao excluir') }
+    } catch {
+      alert('Erro ao excluir')
+    }
   }
 
   const startEdit = (rev) => {
     setEditingReview(rev.id)
     setEditForm({ rating: rev.rating, comment: rev.comment || '' })
-    window.scrollTo({ top: document.querySelector('.gd-reviews-section').offsetTop, behavior: 'smooth' })
+    window.scrollTo({ top: document.querySelector('.gd-reviews-section')?.offsetTop || 0, behavior: 'smooth' })
   }
 
   const cancelEdit = () => {
     setEditingReview(null)
     setReviewMsg('')
   }
+
+  const isRawgOnlyMode = game && /^\d+$/.test(String(game.id))
 
   if (loading) return (
     <div className="container gd-loading">
@@ -158,8 +228,8 @@ export default function GameDetail() {
           {/* ─── Info ─── */}
           <div className="gd-info">
             <div className="gd-badges">
-              <span className="badge">{game.genre || 'demo'}</span>
-              {game.status === 'FEATURED' && <span className="badge badge-accent">destaque</span>}
+              <span className="badge">{game.genre || 'game'}</span>
+              {game.status === 'FEATURED'    && <span className="badge badge-accent">destaque</span>}
               {game.status === 'COMING_SOON' && <span className="badge badge-coming">em breve</span>}
             </div>
 
@@ -174,10 +244,13 @@ export default function GameDetail() {
               {game.demoUrl ? (
                 <Link to={`/play/${game.slug}`} className="btn btn-primary btn-play">▶ Jogar Demo</Link>
               ) : (
-                <span className="badge badge-coming gd-badge-lg">Em breve</span>
+                <span className="badge badge-coming gd-badge-lg">Demo indisponível</span>
               )}
-              <button className={`btn btn-ghost gd-wish-btn ${inWishlist ? 'wishlisted' : ''}`} onClick={toggleWishlist}>
-                {inWishlist ? '♥ Na sua lista' : '♡ Lista de desejos'}
+              <button
+                className={`btn btn-ghost gd-wish-btn ${inWishlist ? 'wishlisted' : ''}`}
+                onClick={toggleWishlist}
+              >
+                {inWishlist ? '♥ Nos favoritos' : '♡ Adicionar aos favoritos'}
               </button>
             </div>
 
@@ -209,56 +282,107 @@ export default function GameDetail() {
         <section className="gd-reviews-section">
           <h2 className="gd-section-title">Avaliações</h2>
 
-          {user && (
+          {isRawgOnlyMode && (
+            <p className="gd-login-hint" style={{ color: 'var(--color-text-muted)' }}>
+              Não foi possível carregar avaliações para este jogo no momento.
+            </p>
+          )}
+
+          {!isRawgOnlyMode && user && (
             <form className="gd-review-form" onSubmit={submitReview}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div className="gd-rating-select">
-                  {[1,2,3,4,5].map(n => (
-                    <button key={n} type="button" className={`gd-star ${(editingReview ? editForm.rating : reviewForm.rating) >= n ? 'active' : ''}`} onClick={() => editingReview ? setEditForm(f => ({...f, rating: n})) : setReviewForm(f => ({...f, rating: n}))}>★</button>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button
+                      key={n}
+                      type="button"
+                      className={`gd-star ${(editingReview ? editForm.rating : reviewForm.rating) >= n ? 'active' : ''}`}
+                      onClick={() => editingReview
+                        ? setEditForm(f => ({ ...f, rating: n }))
+                        : setReviewForm(f => ({ ...f, rating: n }))
+                      }
+                    >★</button>
                   ))}
                 </div>
-                {editingReview && <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)' }}>Editando avaliação</span>}
+                {editingReview && (
+                  <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)' }}>
+                    Editando avaliação
+                  </span>
+                )}
               </div>
+
               <textarea
-                placeholder="Conte o que achou da demo..."
+                placeholder="Conte o que achou..."
                 value={editingReview ? editForm.comment : reviewForm.comment}
-                onChange={e => editingReview ? setEditForm(f => ({...f, comment: e.target.value})) : setReviewForm(f => ({...f, comment: e.target.value}))}
+                onChange={e => editingReview
+                  ? setEditForm(f => ({ ...f, comment: e.target.value }))
+                  : setReviewForm(f => ({ ...f, comment: e.target.value }))
+                }
                 rows={3}
               />
+
               <div className="gd-review-form-actions">
-                <button type="submit" className="btn btn-primary">{editingReview ? 'Salvar Alterações' : 'Enviar avaliação'}</button>
-                {editingReview && <button type="button" className="btn btn-ghost" onClick={cancelEdit}>Cancelar</button>}
+                <button type="submit" className="btn btn-primary">
+                  {editingReview ? 'Salvar Alterações' : 'Enviar avaliação'}
+                </button>
+                {editingReview && (
+                  <button type="button" className="btn btn-ghost" onClick={cancelEdit}>
+                    Cancelar
+                  </button>
+                )}
                 {reviewMsg && <span className="gd-review-msg">{reviewMsg}</span>}
               </div>
             </form>
           )}
 
-          {!user && (
-            <p className="gd-login-hint"><Link to="/login">Faça login</Link> para avaliar esta demo.</p>
+          {!isRawgOnlyMode && !user && (
+            <p className="gd-login-hint">
+              <Link to="/login">Faça login</Link> para avaliar este jogo.
+            </p>
           )}
 
-          <div className="gd-reviews-list">
-            {reviews.length === 0 && <p className="gd-no-reviews">Nenhuma avaliação ainda. Seja o primeiro!</p>}
-            {reviews.map(rev => {
-              const isOwner = user && (user.id === rev.userId || user.id === rev.user?.id)
-              return (
-              <div key={rev.id} className={`gd-review-card ${editingReview === rev.id ? 'editing' : ''}`}>
-                <div className="gd-review-header">
-                  <span className="gd-review-user">{rev.user?.name || 'Usuário'} {isOwner && <span style={{fontSize: 'var(--text-xs)', color: 'var(--color-text-faint)'}}>(você)</span>}</span>
-                  <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-                    <span className="gd-review-stars">{'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}</span>
-                    {isOwner && !editingReview && (
-                      <div style={{display: 'flex', gap: '0.5rem'}}>
-                        <button onClick={() => startEdit(rev)} style={{background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', fontSize: 'var(--text-xs)'}}>Editar</button>
-                        <button onClick={() => handleDeleteReview(rev.id)} style={{background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: 'var(--text-xs)'}}>Excluir</button>
+          {!isRawgOnlyMode && (
+            <div className="gd-reviews-list">
+              {reviews.length === 0 && (
+                <p className="gd-no-reviews">Nenhuma avaliação ainda. Seja o primeiro!</p>
+              )}
+              {reviews.map(rev => {
+                const isOwner = user && (user.id === rev.userId || user.id === rev.user?.id)
+                return (
+                  <div key={rev.id} className={`gd-review-card ${editingReview === rev.id ? 'editing' : ''}`}>
+                    <div className="gd-review-header">
+                      <span className="gd-review-user">
+                        {rev.user?.name || 'Usuário'}
+                        {isOwner && (
+                          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-faint)' }}>
+                            {' '}(você)
+                          </span>
+                        )}
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <span className="gd-review-stars">
+                          {'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}
+                        </span>
+                        {isOwner && !editingReview && (
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                              onClick={() => startEdit(rev)}
+                              style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', fontSize: 'var(--text-xs)' }}
+                            >Editar</button>
+                            <button
+                              onClick={() => handleDeleteReview(rev.id)}
+                              style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: 'var(--text-xs)' }}
+                            >Excluir</button>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
+                    {rev.comment && <p className="gd-review-comment">{rev.comment}</p>}
                   </div>
-                </div>
-                {rev.comment && <p className="gd-review-comment">{rev.comment}</p>}
-              </div>
-            )})}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </section>
       </div>
     </div>

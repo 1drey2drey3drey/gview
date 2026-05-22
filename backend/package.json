@@ -8,6 +8,7 @@
     "start": "node src/server.js",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:audit": "vitest run --reporter=default --reporter=json --outputFile=test-audit-report.json",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "node prisma/seed.js"
@@ -26,5 +27,10 @@
     "prisma": "^5.0.0",
     "supertest": "^6.3.3",
     "vitest": "^1.0.0"
+  },
+  "vitest": {
+    "environment": "node",
+    "globals": true,
+    "testTimeout": 15000
   }
 }

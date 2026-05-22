@@ -2,6 +2,11 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../lib/prisma');
 const { authMiddleware, adminOnly } = require('../middlewares/auth');
+const { slugify } = require('../utils/slugify');
+
+// RAWG API configuration
+const RAWG_BASE = 'https://api.rawg.io/api';
+const RAWG_KEY = process.env.RAWG_API_KEY;
 
 // Mock data — fallback caso o banco esteja vazio ou indisponível
 const mockGames = [
@@ -50,23 +55,61 @@ router.get('/', async (req, res) => {
 // GET /api/games/:slug — detalhe de um jogo por slug
 router.get('/:slug', async (req, res) => {
   try {
-    const game = await prisma.game.findUnique({
-      where: { slug: req.params.slug },
-    });
+    let game = await prisma.game.findUnique({ where: { slug: req.params.slug } });
 
     if (!game) {
-      // Fallback para mock
-      const mock = mockGames.find(g => g.slug === req.params.slug);
-      if (!mock) return res.status(404).json({ error: 'Jogo não encontrado' });
-      return res.json({ ...mock, source: 'mock' });
+      // Extract RAWG ID from slug (assumes format name-rawgId)
+      const parts = req.params.slug.split('-');
+      const rawgId = parts[parts.length - 1];
+
+      // Try to fetch from RAWG API
+      const url = `${RAWG_BASE}/games/${rawgId}?key=${RAWG_KEY}`;
+      const response = await fetch(url);
+
+      if (response.ok) {
+        const g = await response.json();
+        const slug = `${slugify(g.name)}-${rawgId}`;
+        game = await prisma.game.create({
+          data: {
+            title: g.name,
+            slug,
+            shortDescription: (g.description_raw || '').substring(0, 100) + '...',
+            fullDescription: g.description_raw || '',
+            coverUrl: g.background_image,
+            genre: g.genres ? g.genres.map(gg => gg.name).join(', ') : '',
+            studioName: (g.developers && g.developers.length) ? g.developers[0].name : null,
+            launchWindow: g.released,
+            status: 'AVAILABLE',
+          },
+        });
+      } else {
+        // Fallback to mock data if RAWG request fails
+        const mock = mockGames.find(g => g.slug === req.params.slug);
+        if (!mock) return res.status(404).json({ error: 'Jogo não encontrado' });
+        // Ensure mock game exists in DB
+        const existing = await prisma.game.findUnique({ where: { slug: mock.slug } });
+        if (!existing) {
+          await prisma.game.create({
+            data: {
+              title: mock.title,
+              slug: mock.slug,
+              shortDescription: mock.shortDescription,
+              coverUrl: mock.coverUrl,
+              genre: mock.genre,
+              studioName: mock.studioName,
+              status: mock.status,
+              launchWindow: null,
+            },
+          });
+        }
+        return res.json({ ...mock, source: 'mock' });
+      }
     }
 
     res.json(game);
   } catch (err) {
-    console.error('Erro ao buscar jogo no banco, usando fallback:', err.message);
-    const mock = mockGames.find(g => g.slug === req.params.slug);
-    if (!mock) return res.status(404).json({ error: 'Jogo não encontrado' });
-    res.json({ ...mock, source: 'mock' });
+    console.error('Erro ao buscar ou importar jogo:', err);
+    res.status(500).json({ error: 'Erro interno ao buscar jogo' });
   }
 });
 

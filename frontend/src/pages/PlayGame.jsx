@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { mockGames } from '../services/mockData'
+
 
 export default function PlayGame() {
   const { slug } = useParams()
@@ -12,10 +12,7 @@ export default function PlayGame() {
     fetch(`/api/games/${slug}`)
       .then(r => r.ok ? r.json() : Promise.reject())
       .then(data => setGame(data))
-      .catch(() => {
-        const mock = mockGames.find(g => g.slug === slug)
-        setGame(mock || null)
-      })
+      .catch(() => setGame(null))
       .finally(() => setLoading(false))
   }, [slug])
 

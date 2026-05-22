@@ -1,0 +1,28 @@
+# Dependency directories
+node_modules/
+
+# Local databases (Prisma SQLite)
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+
+# Environment variables
+.env
+backend/.env
+frontend/.env
+
+# Build outputs
+dist/
+build/
+
+# IDE/Editor config files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS metadata files
+.DS_Store
+Thumbs.db

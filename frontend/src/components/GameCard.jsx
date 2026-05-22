@@ -21,6 +21,7 @@ export default function GameCard({ game }) {
       </div>
       <div className="game-card-info">
         <h3 className="game-card-title">{game.title}</h3>
+        <p className="game-card-genre">{game.genre}</p>
         <p className="game-card-studio">{game.studioName}</p>
       </div>
     </Link>

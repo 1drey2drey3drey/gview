@@ -36,3 +36,26 @@
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 1rem;
 }
+
+/* ── Hero Search ── */
+.hero-search {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.hero-search-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.6rem 1rem;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #fff);
+  font-size: var(--text-sm, 0.9rem);
+  outline: none;
+}
+
+.hero-search-input::placeholder { color: rgba(255,255,255,0.4); }
+.hero-search-input:focus { border-color: var(--color-accent, #7c6af7); }

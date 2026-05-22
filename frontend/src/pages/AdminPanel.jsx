@@ -18,6 +18,9 @@ export default function AdminPanel() {
   const [error, setError] = useState(null)
   const [rawgId, setRawgId] = useState('')
   const [importMsg, setImportMsg] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [searchLoading, setSearchLoading] = useState(false)
 
   // Jam form
   const [showJamForm, setShowJamForm] = useState(false)
@@ -84,6 +87,43 @@ export default function AdminPanel() {
         setImportMsg('❌ ' + (err.error || 'Erro desconhecido'))
       }
     } catch { setImportMsg('❌ Erro de conexão.') }
+  }
+
+  const handleSearchRAWG = async () => {
+    if (!searchQuery.trim()) return
+    setSearchLoading(true)
+    setImportMsg('')
+    try {
+      const res = await apiFetch(`/api/rawg/search?q=${encodeURIComponent(searchQuery)}`)
+      const json = await res.json()
+      if (res.ok) {
+        setSearchResults(json.data || [])
+        if ((json.data || []).length === 0) {
+          setImportMsg('Nenhum jogo encontrado na RAWG.')
+        }
+      } else {
+        setImportMsg('❌ ' + (json.error || 'Erro ao pesquisar'))
+      }
+    } catch {
+      setImportMsg('❌ Erro de conexão ao pesquisar.')
+    } finally {
+      setSearchLoading(false)
+    }
+  }
+
+  const handleImportFromSearch = async (id) => {
+    setImportMsg('Importando...')
+    try {
+      const res = await apiFetch(`/api/rawg/import/${id}`, { method: 'POST' })
+      if (res.ok) {
+        setImportMsg('✅ Jogo importado com sucesso!')
+        setSearchResults(prev => prev.filter(g => g.rawgId !== id))
+        fetchData()
+      } else {
+        const err = await res.json()
+        setImportMsg('❌ ' + (err.error || 'Erro desconhecido'))
+      }
+    } catch { setImportMsg('❌ Erro de conexão ao importar.') }
   }
 
   const handleCreateJam = async (e) => {
@@ -167,12 +207,52 @@ export default function AdminPanel() {
         <div className="admin-games">
           <div className="admin-rawg-import">
             <h3>Importar da RAWG API</h3>
-            <p className="admin-rawg-hint">Insira o ID de um jogo na RAWG para importar metadados para o catálogo.</p>
-            <div className="rawg-input-row">
+            <p className="admin-rawg-hint">Insira o ID de um jogo na RAWG para importar ou faça uma pesquisa pelo nome abaixo.</p>
+            
+            <div className="rawg-input-row" style={{ marginBottom: '1.5rem' }}>
               <input type="text" placeholder="ID do Jogo (ex: 3498)" value={rawgId} onChange={e => setRawgId(e.target.value)} className="rawg-input" />
-              <button className="btn btn-primary" onClick={handleImportRAWG}>Importar</button>
+              <button className="btn btn-primary" onClick={handleImportRAWG}>Importar por ID</button>
             </div>
-            {importMsg && <p className="rawg-msg">{importMsg}</p>}
+
+            <div className="rawg-search-section" style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.5rem' }}>
+              <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600' }}>Pesquisar e Importar</h4>
+              <div className="rawg-input-row">
+                <input 
+                  type="text" 
+                  placeholder="Pesquisar jogo na RAWG (ex: Hollow Knight)" 
+                  value={searchQuery} 
+                  onChange={e => setSearchQuery(e.target.value)} 
+                  onKeyDown={e => e.key === 'Enter' && handleSearchRAWG()} 
+                  className="rawg-input" 
+                />
+                <button className="btn btn-secondary" onClick={handleSearchRAWG} disabled={searchLoading}>
+                  {searchLoading ? 'Buscando...' : 'Buscar'}
+                </button>
+              </div>
+
+              {searchResults.length > 0 && (
+                <div className="rawg-search-results" style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {searchResults.map(game => (
+                    <div key={game.rawgId} className="admin-game-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <img src={game.coverUrl || 'https://via.placeholder.com/60x80?text=Capa'} alt="" className="admin-game-thumb" style={{ width: '40px', height: '53px' }} />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <strong style={{ fontSize: '0.85rem' }}>{game.name}</strong>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                            Lançamento: {game.released || 'N/A'} | Nota: {game.rating || 'N/A'} (ID: {game.rawgId})
+                          </span>
+                        </div>
+                      </div>
+                      <button className="btn-approve" onClick={() => handleImportFromSearch(game.rawgId)}>
+                        Importar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {importMsg && <p className="rawg-msg" style={{ marginTop: '1rem' }}>{importMsg}</p>}
           </div>
 
           <h3 className="admin-subtitle">Jogos Cadastrados</h3>
