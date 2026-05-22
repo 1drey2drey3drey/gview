@@ -62,7 +62,7 @@ Justificativa: API pública com cobertura ampla de jogos, suporte a gêneros, pl
 - **Pós-condição:** visitante lê informações completas.
 
 ### UC05 — Jogar uma demo
-- **Ator:** visitante ou usuário autenticado.
+- **Ator:** visitante ou usuário.
 - **Pré-condição:** jogo possui `demoUrl` válida.
 - **Fluxo principal:** usuário clica em "Jogar"; sistema carrega a página da demo.
 - **Fluxo alternativo:** demo indisponível; sistema informa erro.
@@ -70,42 +70,42 @@ Justificativa: API pública com cobertura ampla de jogos, suporte a gêneros, pl
 
 ### UC06 — Cadastrar conta
 - **Ator:** visitante.
-- **Pré-condição:** e-mail não cadastrado.
+- **Pré-condição:** e-mail não.
 - **Fluxo principal:** visitante preenche formulário; sistema cria conta.
 - **Fluxo alternativo:** e-mail já utilizado ou dados inválidos.
 - **Pós-condição:** conta registrada.
 
 ### UC07 — Realizar login
-- **Ator:** usuário cadastrado.
+- **Ator:** usuário.
 - **Pré-condição:** conta ativa.
 - **Fluxo principal:** usuário informa credenciais; sistema autentica acesso.
 - **Fluxo alternativo:** credenciais inválidas.
 - **Pós-condição:** sessão autenticada.
 
 ### UC08 — Adicionar jogo à wishlist
-- **Ator:** usuário autenticado.
+- **Ator:** usuário.
 - **Pré-condição:** usuário logado; jogo existente.
 - **Fluxo principal:** usuário aciona botão de lista; sistema grava vínculo.
 - **Fluxo alternativo:** item já existe na lista.
 - **Pós-condição:** wishlist atualizada.
 
 ### UC09 — Remover jogo da wishlist
-- **Ator:** usuário autenticado.
+- **Ator:** usuário.
 - **Pré-condição:** item presente na wishlist.
 - **Fluxo principal:** usuário remove o item; sistema atualiza lista.
 - **Fluxo alternativo:** item não encontrado.
 - **Pós-condição:** wishlist atualizada.
 
 ### UC10 — Visualizar wishlist
-- **Ator:** usuário autenticado.
+- **Ator:** usuário.
 - **Pré-condição:** usuário logado.
 - **Fluxo principal:** sistema exibe lista pessoal do usuário.
 - **Fluxo alternativo:** wishlist vazia.
 - **Pós-condição:** usuário acompanha jogos salvos.
 
 ### UC11 — Avaliar uma demo
-- **Ator:** usuário autenticado.
-- **Pré-condição:** jogo disponível; usuário autenticado.
+- **Ator:** usuário.
+- **Pré-condição:** jogo disponível; usuário.
 - **Fluxo principal:** usuário envia nota e comentário; sistema persiste avaliação.
 - **Fluxo alternativo:** dados inválidos ou avaliação duplicada.
 - **Pós-condição:** avaliação registrada.
