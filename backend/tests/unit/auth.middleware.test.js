@@ -1,16 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import jwt from 'jsonwebtoken';
+import { makeMockRes } from '../helpers.js';
 import { authMiddleware, adminOnly } from '../../src/middlewares/auth.js';
 
-const JWT_SECRET = 'gview-secret-dev';
+const JWT_SECRET = process.env.JWT_SECRET || 'gview-secret-dev';
 
 function makeReqRes(headers = {}, user = null) {
   const req = { headers, user };
-  const res = {
-    _status: null, _body: null,
-    status(code) { this._status = code; return this; },
-    json(body) { this._body = body; return this; },
-  };
+  const res = makeMockRes();
+  res._status = null;
   const next = vi.fn();
   return { req, res, next };
 }

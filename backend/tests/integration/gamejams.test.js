@@ -5,7 +5,7 @@ import prisma from '../../src/lib/prisma.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = 'gview-secret-dev';
+const JWT_SECRET = process.env.JWT_SECRET || 'gview-secret-dev';
 let adminToken, adminId;
 
 beforeAll(async () => {

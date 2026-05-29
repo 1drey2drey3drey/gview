@@ -1,35 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { makeMockRes, makePrismaModel, makeMockReq } from '../helpers.js';
 
-// Mock Prisma
 vi.mock('../../src/lib/prisma.js', () => {
-  const mockPrisma = {
-    game: {
-      findMany: vi.fn(),
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-  };
+  const mockPrisma = { game: makePrismaModel() };
   global.__prisma = mockPrisma;
-  return {
-    ...mockPrisma,
-    default: mockPrisma,
-  };
+  return { ...mockPrisma, default: mockPrisma };
 });
 
 import prisma from '../../src/lib/prisma.js';
 import { listGames, getGameBySlug, createGame, updateGame, deleteGame, generateSlug } from '../../src/controllers/games.controller.js';
-
-function makeMockRes() {
-  const res = {
-    _status: 200, _body: null,
-    status(code) { this._status = code; return this; },
-    json(body) { this._body = body; return this; },
-    send() { return this; },
-  };
-  return res;
-}
 
 describe('generateSlug', () => {
   it('deve gerar slug corretamente', () => {
@@ -49,27 +28,24 @@ describe('listGames', () => {
   it('deve retornar jogos do banco quando existem', async () => {
     const mockGames = [{ id: '1', title: 'Test', slug: 'test' }];
     prisma.game.findMany.mockResolvedValue(mockGames);
-    const req = { query: {} };
     const res = makeMockRes();
-    await listGames(req, res);
+    await listGames(makeMockReq(), res);
     expect(res._body.data).toEqual(mockGames);
     expect(res._body.total).toBe(1);
   });
 
   it('deve retornar mock quando banco está vazio', async () => {
     prisma.game.findMany.mockResolvedValue([]);
-    const req = { query: {} };
     const res = makeMockRes();
-    await listGames(req, res);
+    await listGames(makeMockReq(), res);
     expect(res._body.source).toBe('mock');
     expect(Array.isArray(res._body.data)).toBe(true);
   });
 
   it('deve filtrar por status', async () => {
     prisma.game.findMany.mockResolvedValue([]);
-    const req = { query: { status: 'FEATURED' } };
     const res = makeMockRes();
-    await listGames(req, res);
+    await listGames(makeMockReq({ query: { status: 'FEATURED' } }), res);
     expect(res._body.source).toBe('mock');
   });
 });
@@ -78,27 +54,24 @@ describe('createGame', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('deve retornar 400 quando título está ausente', async () => {
-    const req = { body: { shortDescription: 'test' } };
     const res = makeMockRes();
-    await createGame(req, res);
+    await createGame(makeMockReq({ body: { shortDescription: 'test' } }), res);
     expect(res._status).toBe(400);
   });
 
   it('deve criar jogo com sucesso', async () => {
     const game = { id: '1', title: 'New Game', slug: 'new-game', shortDescription: 'Test' };
     prisma.game.create.mockResolvedValue(game);
-    const req = { body: { title: 'New Game', shortDescription: 'Test' } };
     const res = makeMockRes();
-    await createGame(req, res);
+    await createGame(makeMockReq({ body: { title: 'New Game', shortDescription: 'Test' } }), res);
     expect(res._status).toBe(201);
     expect(res._body).toEqual(game);
   });
 
   it('deve retornar 409 para slug duplicado', async () => {
     prisma.game.create.mockRejectedValue({ code: 'P2002' });
-    const req = { body: { title: 'Existing', shortDescription: 'Test' } };
     const res = makeMockRes();
-    await createGame(req, res);
+    await createGame(makeMockReq({ body: { title: 'Existing', shortDescription: 'Test' } }), res);
     expect(res._status).toBe(409);
   });
 });
@@ -108,17 +81,15 @@ describe('deleteGame', () => {
 
   it('deve retornar 404 se jogo não existe', async () => {
     prisma.game.delete.mockRejectedValue({ code: 'P2025' });
-    const req = { params: { id: 'nonexistent' } };
     const res = makeMockRes();
-    await deleteGame(req, res);
+    await deleteGame(makeMockReq({ params: { id: 'nonexistent' } }), res);
     expect(res._status).toBe(404);
   });
 
   it('deve deletar com sucesso', async () => {
     prisma.game.delete.mockResolvedValue({});
-    const req = { params: { id: 'game-1' } };
     const res = makeMockRes();
-    await deleteGame(req, res);
+    await deleteGame(makeMockReq({ params: { id: 'game-1' } }), res);
     expect(res._status).toBe(204);
   });
 });

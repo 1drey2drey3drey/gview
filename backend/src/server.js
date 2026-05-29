@@ -13,9 +13,29 @@ const collectionsRouter = require('./routes/collections.routes');
 const usersRouter = require('./routes/users.routes');
 
 const app = express();
+
+// Oculta o header X-Powered-By para não expor a versão do Express
+app.disable('x-powered-by');
+
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+// Restringe CORS apenas às origens permitidas
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',')
+  : ['http://localhost:5173'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Permite requisições sem origin (ex: Postman, testes server-side)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
+
 app.use(express.json());
 
 app.use('/api/games', gamesRouter);

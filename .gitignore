@@ -19,9 +19,10 @@ backend/dev.db
 frontend/dist/
 backend/dist/
 
-# Relatórios de teste
+# Relatórios de teste e cobertura — gerados automaticamente, nunca commitar
 frontend/playwright-report/
 frontend/test-results/
+frontend/coverage/
 backend/coverage/
 
 # Logs
